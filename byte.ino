@@ -5,7 +5,18 @@ Servo servo2; // Servo que empurra o braço
 Servo servo3;
 Servo servo4;
 
-String inputString = "";         // Uma string para armazenar os dados recebidos da serial
+String inputString = ""; // Uma string para armazenar os dados recebidos da serial
+
+void moveServoSmoothly(Servo &servo, int targetPos, int delayTime = 15) {
+  int currentPos = servo.read(); // Lê a posição atual do servo
+  int step = targetPos > currentPos ? 1 : -1; // Determina a direção do movimento
+
+  while (currentPos != targetPos) {
+    currentPos += step;
+    servo.write(currentPos);
+    delay(delayTime); // Aguarda um pouco para suavizar o movimento
+  }
+}
 
 void setup() {
   Serial.begin(9600);
@@ -16,10 +27,10 @@ void setup() {
   servo4.attach(8);
 
   // Inicializa os servos nas posições iniciais
-  servo1.write(180);
-  servo2.write(10);
-  servo3.write(95);
-  servo4.write(90);
+  moveServoSmoothly(servo1, 180);
+  moveServoSmoothly(servo2, 10);
+  moveServoSmoothly(servo3, 95);
+  moveServoSmoothly(servo4, 90);
 
   // Espera um pouco para garantir que os servos estão na posição inicial
   delay(1000);
@@ -28,23 +39,24 @@ void setup() {
 
   // Mensagem de debug para indicar que o setup foi concluído
   Serial.println("Setup completo, aguardando comando...");
+  idle();
 }
 
 void bye() {
   // Levanta o braço
-  servo1.write(50);
+  moveServoSmoothly(servo1, 50);
   delay(1000); // Aguarda 1 segundo para o braço levantar completamente
 
   // Acena 3 vezes
   for (int i = 0; i < 3; i++) {
-    servo2.write(40); // Move o servo2 para a posição 60
+    moveServoSmoothly(servo2, 40); // Move o servo2 para a posição 60
     delay(500); // Espera 0,5 segundo
-    servo2.write(10); // Move o servo2 para a posição 0
+    moveServoSmoothly(servo2, 10); // Move o servo2 para a posição 0
     delay(500); // Espera 0,5 segundo
   }
 
   // Retorna o braço à posição inicial
-  servo1.write(180);
+  moveServoSmoothly(servo1, 180);
   delay(1000); // Aguarda 1 segundo para o braço descer completamente
 
   // Aguarda antes de repetir
@@ -52,26 +64,26 @@ void bye() {
 }
 
 void yes() {
-  servo3.write(75);
+  moveServoSmoothly(servo3, 75);
   delay(1000);
   for (int i = 0; i < 5; i++) {
-    servo3.write(85);
+    moveServoSmoothly(servo3, 85);
     delay(100);
-    servo3.write(75);
+    moveServoSmoothly(servo3, 75);
     delay(100);
   }
   delay(500);
-  servo3.write(95);
+  moveServoSmoothly(servo3, 95);
 }
 
-void no(){
+void no() {
   for (int i = 0; i < 5; i++) {
-    servo4.write(70);
+    moveServoSmoothly(servo4, 70);
     delay(100);
-    servo4.write(110);
+    moveServoSmoothly(servo4, 110);
     delay(100);
   }
-  servo4.write(90);
+  moveServoSmoothly(servo4, 90);
 }
 
 void dance() {
@@ -95,35 +107,33 @@ void dance() {
           Serial.println("Comando 'stop' acionado, interrompendo dança");
           break; // Sai do loop da dança
         }
-        
+
         // Limpa a string de entrada
         inputString = "";
       }
     }
 
     // Combinando movimentos dos servos para criar uma "dança"
-    servo1.write(50);
-    servo2.write(40);
+    moveServoSmoothly(servo1, 50);
+    moveServoSmoothly(servo2, 40);
     delay(500);
-    servo1.write(180);
-    servo2.write(10);
+    moveServoSmoothly(servo1, 180);
+    moveServoSmoothly(servo2, 10);
     delay(500);
-    
-    servo3.write(75);
+
+    moveServoSmoothly(servo3, 75);
     delay(500);
-    servo3.write(95);
+    moveServoSmoothly(servo3, 95);
     delay(500);
-    
-    servo4.write(70);
+
+    moveServoSmoothly(servo4, 70);
     delay(500);
-    servo4.write(90);
+    moveServoSmoothly(servo4, 90);
     delay(500);
   }
 }
 
 void idle() {
-
-
   int aux = 0;
 
   while (aux == 0) {
@@ -147,7 +157,7 @@ void idle() {
           aux = 1;
           break; // Sai do loop do idle
         }
-        
+
         // Limpa a string de entrada
         inputString = "";
       }
@@ -157,9 +167,9 @@ void idle() {
     int servo3Pos = random(85, 111); // Gera um valor aleatório entre 85 e 110 para o servo 3
     int servo4Pos = random(0, 181);  // Gera um valor aleatório entre 0 e 180 para o servo 4
 
-    servo3.write(servo3Pos);
+    moveServoSmoothly(servo3, servo3Pos);
     delay(random(500, 1500)); // Espera um tempo aleatório entre 0,5 e 1,5 segundos
-    servo4.write(servo4Pos);
+    moveServoSmoothly(servo4, servo4Pos);
     delay(random(500, 1500)); // Espera um tempo aleatório entre 0,5 e 1,5 segundos
 
     delay(3000);
@@ -191,7 +201,6 @@ void loop() {
       } else if (inputString == "no") {
         Serial.println("Comando 'no' acionado");
         no();
-        
       } else if (inputString == "dance") {
         Serial.println("Comando 'dance' acionado");
         dance();
@@ -199,11 +208,10 @@ void loop() {
         Serial.println("Comando 'idle' acionado");
         inputString = "";
         idle();
-      }
-        else {
+      } else {
         Serial.println("Erro ao comando");
       }
-      
+
       // Limpa a string de entrada
       inputString = "";
     }
