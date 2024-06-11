@@ -2,9 +2,11 @@ import freenect
 import cv2
 import numpy as np
 import serial
+import time
 
 # Configurar a porta serial para comunicação com o Arduino
-arduino = serial.Serial('COM6', 9600)
+arduino = serial.Serial('/dev/cu.usbserial-1420', 9600)
+time.sleep(2)  # Aguarde a inicialização da conexão serial
 
 # Inicializar o classificador de cascata para detecção facial
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -21,12 +23,14 @@ def detect_face_and_move_servo():
 
     for (x, y, w, h) in faces:
         cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
-        # Calcular a posição do servo com base na posição do rosto
+        # Calcular a posição do servo invertida com base na posição do rosto
         center_x = x + w // 2
-        position = int((center_x / frame.shape[1]) * 180)  # Mapeando para o ângulo do servo (0-180)
+        position = 180 - int((center_x / frame.shape[1]) * 180)  # Mapeando para o ângulo do servo invertido (180-0)
+        print(f'Posição enviada ao Arduino: {position}')
         arduino.write(bytes([position]))
 
     cv2.imshow('Kinect Face Detection', frame)
+    time.sleep(0.5)  # Adicionar um delay de 500 ms entre as leituras
 
 while True:
     detect_face_and_move_servo()
@@ -34,3 +38,4 @@ while True:
         break
 
 cv2.destroyAllWindows()
+arduino.close()

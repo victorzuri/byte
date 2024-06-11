@@ -39,7 +39,6 @@ void setup() {
 
   // Mensagem de debug para indicar que o setup foi concluído
   Serial.println("Setup completo, aguardando comando...");
-  idle();
 }
 
 void bye() {
@@ -209,7 +208,8 @@ void loop() {
         inputString = "";
         idle();
       } else {
-        Serial.println("Erro ao comando");
+        int a = inputString;
+        servo4.write(inputString);
       }
 
       // Limpa a string de entrada
